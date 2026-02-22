@@ -110,29 +110,25 @@ async function removeBackground() {
         return;
     }
 
+    output.innerText = "Processing...";
+    downloadSection.innerHTML = "";
+
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-        const response = await fetch("http://127.0.0.1:8000/remove-background", {
+        const response = await fetch(`${backendURL}/remove-background`, {
             method: "POST",
             body: formData
         });
 
         if (!response.ok) throw new Error("Failed");
 
-        const blob = await response.blob();
+        const data = await response.json();
 
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "background_removed.png";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
+        output.innerText = data.message || "Completed ✅";
 
     } catch (err) {
-        alert("Background removal failed");
+        output.innerText = "Background removal failed ❌";
     }
 }
