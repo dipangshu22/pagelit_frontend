@@ -1,224 +1,138 @@
 const backendURL = "https://pagelit-backend-1.onrender.com";
 
-
-const fileInput = document.getElementById("fileInput");
-const uploadBox = document.getElementById("uploadBox");
 const output = document.getElementById("output");
 const downloadSection = document.getElementById("downloadSection");
 
-/* Upload animation */
-fileInput.addEventListener("change", () => {
-    uploadBox.classList.add("active");
-
-    setTimeout(() => {
-        uploadBox.classList.remove("active");
-    }, 1500);
-});
-
-/* Convert to PDF */
+// Convert Images → PDF
 async function convertToPDF() {
-    const files = fileInput.files;
-    if (!files.length) return alert("Select images first");
+    const files = document.getElementById("fileInput").files;
+
+    if (!files.length) {
+        alert("Please select images first");
+        return;
+    }
+
+    output.innerText = "Generating PDF...";
+    downloadSection.innerHTML = "";
 
     const formData = new FormData();
     for (let file of files) {
         formData.append("files", file);
     }
 
-    output.innerText = "Generating PDF...";
+    try {
+        const response = await fetch(`${backendURL}/convert-to-pdf`, {
+            method: "POST",
+            body: formData
+        });
 
-    const response = await fetch(`${backendURL}/convert-to-pdf`, {
-        method: "POST",
-        body: formData
-    });
+        if (!response.ok) throw new Error("Failed");
 
-    const blob = await response.blob();
-    downloadFile(blob, "converted.pdf");
-    output.innerText = "PDF Ready ✅";
+        const blob = await response.blob();
+
+        output.innerText = "PDF generated successfully ✅";
+
+        window.generatedPDF = blob;
+
+        downloadSection.innerHTML =
+            `<button onclick="downloadPDFFromBlob()">Download PDF</button>`;
+
+    } catch (error) {
+        output.innerText = "Error generating PDF ❌";
+    }
 }
 
-/* Image to Text */
-async function imageToText() {
-    const file = fileInput.files[0];
-    if (!file) return alert("Select an image");
+function downloadPDFFromBlob() {
+    if (!window.generatedPDF) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    output.innerText = "Extracting text...";
-
-    const response = await fetch(`${backendURL}/image-to-text`, {
-        method: "POST",
-        body: formData
-    });
-
-    const data = await response.json();
-    output.innerText = data.extracted_text || "No text detected.";
-}
-
-/* Remove Background */
-async function removeBackground() {
-    const file = fileInput.files[0];
-    if (!file) return alert("Select an image");
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    output.innerText = "Removing background...";
-
-    const response = await fetch(`${backendURL}/remove-background`, {
-        method: "POST",
-        body: formData
-    });
-
-    const blob = await response.blob();
-    downloadFile(blob, "background_removed.png");
-    output.innerText = "Background Removed ✅";
-}
-
-/* Download helper */
-function downloadFile(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
+    const url = URL.createObjectURL(window.generatedPDF);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "converted.pdf";
+    link.click();
     URL.revokeObjectURL(url);
 }
 
-// const output = document.getElementById("output");
-// const downloadSection = document.getElementById("downloadSection");
 
-// // Convert Images → PDF
-// async function convertToPDF() {
-//     const files = document.getElementById("fileInput").files;
+// Image → Text
+async function imageToText() {
+    const file = document.getElementById("fileInput").files[0];
 
-//     if (!files.length) {
-//         alert("Please select images first");
-//         return;
-//     }
+    if (!file) {
+        alert("Please select an image");
+        return;
+    }
 
-//     output.innerText = "Generating PDF...";
-//     downloadSection.innerHTML = "";
+    output.innerText = "Extracting text...";
+    downloadSection.innerHTML = "";
 
-//     const formData = new FormData();
-//     for (let file of files) {
-//         formData.append("files", file);
-//     }
+    const formData = new FormData();
+    formData.append("file", file);
 
-//     try {
-//         const response = await fetch(`${backendURL}/convert-to-pdf`, {
-//             method: "POST",
-//             body: formData
-//         });
+    try {
+        const response = await fetch(`${backendURL}/image-to-text`, {
+            method: "POST",
+            body: formData
+        });
 
-//         if (!response.ok) throw new Error("Failed");
+        if (!response.ok) throw new Error("Failed");
 
-//         const blob = await response.blob();
+        const data = await response.json();
 
-//         output.innerText = "PDF generated successfully ✅";
+        output.innerText = data.extracted_text || "No text detected.";
 
-//         window.generatedPDF = blob;
+        downloadSection.innerHTML =
+            `<button onclick="downloadText()">Download Text</button>`;
 
-//         downloadSection.innerHTML =
-//             `<button onclick="downloadPDFFromBlob()">Download PDF</button>`;
+    } catch (error) {
+        output.innerText = "Error extracting text ❌";
+    }
+}
 
-//     } catch (error) {
-//         output.innerText = "Error generating PDF ❌";
-//     }
-// }
+function downloadText() {
+    const text = output.innerText;
 
-// function downloadPDFFromBlob() {
-//     if (!window.generatedPDF) return;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
 
-//     const url = URL.createObjectURL(window.generatedPDF);
-//     const link = document.createElement("a");
-//     link.href = url;
-//     link.download = "converted.pdf";
-//     link.click();
-//     URL.revokeObjectURL(url);
-// }
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "extracted_text.txt";
+    link.click();
 
+    URL.revokeObjectURL(url);
+}
+async function removeBackground() {
+    const file = document.getElementById("fileInput").files[0];
 
-// // Image → Text
-// async function imageToText() {
-//     const file = document.getElementById("fileInput").files[0];
+    if (!file) {
+        alert("Please select an image");
+        return;
+    }
 
-//     if (!file) {
-//         alert("Please select an image");
-//         return;
-//     }
+    const formData = new FormData();
+    formData.append("file", file);
 
-//     output.innerText = "Extracting text...";
-//     downloadSection.innerHTML = "";
+    try {
+        const response = await fetch("http://127.0.0.1:8000/remove-background", {
+            method: "POST",
+            body: formData
+        });
 
-//     const formData = new FormData();
-//     formData.append("file", file);
+        if (!response.ok) throw new Error("Failed");
 
-//     try {
-//         const response = await fetch(`${backendURL}/image-to-text`, {
-//             method: "POST",
-//             body: formData
-//         });
+        const blob = await response.blob();
 
-//         if (!response.ok) throw new Error("Failed");
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "background_removed.png";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
 
-//         const data = await response.json();
-
-//         output.innerText = data.extracted_text || "No text detected.";
-
-//         downloadSection.innerHTML =
-//             `<button onclick="downloadText()">Download Text</button>`;
-
-//     } catch (error) {
-//         output.innerText = "Error extracting text ❌";
-//     }
-// }
-
-// function downloadText() {
-//     const text = output.innerText;
-
-//     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-//     const url = URL.createObjectURL(blob);
-
-//     const link = document.createElement("a");
-//     link.href = url;
-//     link.download = "extracted_text.txt";
-//     link.click();
-
-//     URL.revokeObjectURL(url);
-// }
-// async function removeBackground() {
-//     const file = document.getElementById("fileInput").files[0];
-
-//     if (!file) {
-//         alert("Please select an image");
-//         return;
-//     }
-
-//     const formData = new FormData();
-//     formData.append("file", file);
-
-//     try {
-//         const response = await fetch("http://127.0.0.1:8000/remove-background", {
-//             method: "POST",
-//             body: formData
-//         });
-
-//         if (!response.ok) throw new Error("Failed");
-
-//         const blob = await response.blob();
-
-//         const url = window.URL.createObjectURL(blob);
-//         const a = document.createElement("a");
-//         a.href = url;
-//         a.download = "background_removed.png";
-//         document.body.appendChild(a);
-//         a.click();
-//         a.remove();
-//         window.URL.revokeObjectURL(url);
-
-//     } catch (err) {
-//         alert("Background removal failed");
-//     }
-// }
+    } catch (err) {
+        alert("Background removal failed");
+    }
+}
