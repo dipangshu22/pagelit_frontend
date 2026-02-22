@@ -1,4 +1,4 @@
-const backendURL = "http://127.0.0.1:8000";
+const backendURL = "https://pagelit-backend-1.onrender.com";
 
 const output = document.getElementById("output");
 const downloadSection = document.getElementById("downloadSection");
