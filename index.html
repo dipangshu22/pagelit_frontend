@@ -1,39 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAGELIT</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="background"></div>
-
 <div class="container">
+
     <h1>PAGELIT</h1>
-    <p class="subtitle">Convert Images to PDF & Extract Text Instantly</p>
-    <h4>note:</h4><p>Import clear images to extract text with accuracy</p>
+    <p class="subtitle">Smart Image Tools</p>
 
-    <div class="card">
-
-        <label for="fileInput" class="upload-box">
-            <div class="upload-content">
-                <span>📂 Drag & Drop or Click to Upload</span>
-                <small>Supports multiple images</small>
-            </div>
-        </label>
-
-        <input type="file" id="fileInput" multiple hidden>
-
-        <div class="buttons">
-            <button class="primary" onclick="convertToPDF()">Convert to PDF</button>
-            <button class="secondary" onclick="imageToText()">Extract Text</button>
-            <button class="secondary" onclick="removeBackground()">Remove Background</button>
+    <!-- Upload Area -->
+    <label for="fileInput" class="upload-box" id="uploadBox">
+        <div class="upload-content">
+            <div class="upload-icon">📂</div>
+            <span>Tap or Drag Images</span>
+            <small>Supports multiple files</small>
         </div>
+    </label>
 
-        <div id="output"></div>
-        <div id="downloadSection"></div>
+    <input type="file" id="fileInput" multiple hidden>
 
-    </div>
+    <!-- Output -->
+    <div id="output"></div>
+    <div id="downloadSection"></div>
+
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+    <button onclick="convertToPDF()">
+        <span>📄</span>
+        <small>PDF</small>
+    </button>
+    <button onclick="imageToText()">
+        <span>📝</span>
+        <small>Text</small>
+    </button>
+    <button onclick="removeBackground()">
+        <span>🎨</span>
+        <small>Remove BG</small>
+    </button>
 </div>
 
 <script src="script.js"></script>
